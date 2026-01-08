@@ -28,3 +28,13 @@ def plot(x, y, x_label=None, y_label=None, title=None):
     if title:
         plt.title(title)
     plt.show()
+
+def scatter(x, y, x_label=None, y_label=None, title=None):
+    plt.scatter(x, y)
+    if x_label:
+        plt.xlabel(x_label)
+    if y_label:
+        plt.ylabel(y_label)
+    if title:
+        plt.title(title)
+    plt.show()
