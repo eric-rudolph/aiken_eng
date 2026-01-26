@@ -18,4 +18,8 @@ This file uses all the scipy.constants units and defines some additional units
 that make documentation / implementation easier to follow.<br>
 For example, m=1.<br>
 
-Trigger Warning! - This file uses from `scipy.constants import *`
+Trigger Warning! - This file uses from `scipy.constants import *`<br>
+## impact
+Provides tools for handling Aiken Engineering's impact analysis.<br>
+`import_plate_fea`<br>
+`plot_plate_fea`<br>
