@@ -1,4 +1,6 @@
 from pathlib import Path
+import re
+import pandas as pd
 
 
 def read_nodes(filename: str | Path) -> dict:
@@ -62,6 +64,60 @@ def read_prnsol(filename: str | Path) -> dict:
     return nodes
 
 
+def read_prnsol_files_to_dataframe(file_paths: list[str]) -> pd.DataFrame:
+    """
+    Read multiple PRNSOL-style text files and return one combined DataFrame.
+
+    Rules:
+    - First relevant line starts with "NODE" and defines headers.
+    - Any line that starts with an integer is data.
+    - Any line that does not start with an integer is ignored.
+    """
+
+    numeric_line = re.compile(r"^\s*\d+\b")
+    frames = []
+
+    for file_path in file_paths:
+        path = Path(file_path)
+        header = None
+        rows = []
+
+        with path.open("r") as f:
+            for line in f:
+                parts = line.split()
+                if not parts:
+                    continue
+
+                if header is None and parts[0] == "NODE":
+                    header = parts
+                    continue
+
+                if header is None:
+                    continue
+
+                if numeric_line.match(line):
+                    rows.append(parts[: len(header)])
+
+        if header is None:
+            raise ValueError(f'No header line starting with "NODE" found in {path}')
+
+        if rows:
+            frame = pd.DataFrame(rows, columns=header)
+            frame["source_file"] = path.name
+            frames.append(frame)
+
+    if not frames:
+        return pd.DataFrame()
+
+    combined = pd.concat(frames, ignore_index=True)
+
+    for col in combined.columns:
+        if col != "source_file":
+            combined[col] = pd.to_numeric(combined[col], errors="coerce")
+
+    return combined
+
+
 def read_pretab(filename: str | Path) -> dict:
     """
     Reads the PRETAB output and returns a dict {ELEMENT, KEY} where KEY is
@@ -113,6 +169,7 @@ def read_elements(filename: str | Path) -> dict:
     elements["NODE2"] = node_2
 
     return elements
+
 
 def read_linearized_stress(filename: str) -> dict:
     """This file reads the linearized stress output from ANSYS and returns a dict."""
